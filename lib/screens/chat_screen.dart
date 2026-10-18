@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
@@ -37,6 +38,8 @@ class _ChatScreenState extends State<ChatScreen> {
   late Stream<List<Map<String, dynamic>>> _messageStream;
   final TextEditingController _inputController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
+  final FocusNode _focusNode = FocusNode();
+  bool _showEmojiPicker = false;
 
   String _chatKey = '';
 
@@ -55,10 +58,26 @@ class _ChatScreenState extends State<ChatScreen> {
   void initState() {
     super.initState();
     _messageStream = _chatService.listenForMessages(widget.receiverId);
+    _focusNode.addListener(() {
+      if (_focusNode.hasFocus && _showEmojiPicker) {
+        setState(() => _showEmojiPicker = false);
+      }
+    });
+  }
+
+  void _toggleEmojiPicker() {
+    if (_showEmojiPicker) {
+      setState(() => _showEmojiPicker = false);
+      _focusNode.requestFocus();
+    } else {
+      _focusNode.unfocus();
+      setState(() => _showEmojiPicker = true);
+    }
   }
 
   @override
   void dispose() {
+    _focusNode.dispose();
     _inputController.dispose();
     _scrollController.dispose();
     super.dispose();
@@ -522,12 +541,23 @@ class _ChatScreenState extends State<ChatScreen> {
           ),
           MessageInputBar(
             controller: _inputController,
+            focusNode: _focusNode,
             receiverName: widget.receiverName,
             hasRoomKey: _chatKey.isNotEmpty,
+            showEmojiPicker: _showEmojiPicker,
+            onEmojiTap: _toggleEmojiPicker,
             onKeyTap: _showPasswordOverlay,
             onImageTap: _pickAndSendImage,
             onSend: _sendMessage,
           ),
+          if (_showEmojiPicker)
+            SizedBox(
+              height: 250,
+              child: EmojiPicker(
+                textEditingController: _inputController,
+                config: const Config(height: 250),
+              ),
+            ),
         ],
       ),
     );

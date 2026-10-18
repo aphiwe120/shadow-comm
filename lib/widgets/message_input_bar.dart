@@ -4,8 +4,11 @@ import 'package:flutter/material.dart';
 /// message field with its send button.
 class MessageInputBar extends StatelessWidget {
   final TextEditingController controller;
+  final FocusNode focusNode;
   final String receiverName;
   final bool hasRoomKey;
+  final bool showEmojiPicker;
+  final VoidCallback onEmojiTap;
   final VoidCallback onKeyTap;
   final VoidCallback onImageTap;
   final VoidCallback onSend;
@@ -13,8 +16,11 @@ class MessageInputBar extends StatelessWidget {
   const MessageInputBar({
     super.key,
     required this.controller,
+    required this.focusNode,
     required this.receiverName,
     required this.hasRoomKey,
+    required this.showEmojiPicker,
+    required this.onEmojiTap,
     required this.onKeyTap,
     required this.onImageTap,
     required this.onSend,
@@ -81,10 +87,18 @@ class MessageInputBar extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 8),
+            IconButton(
+              icon: Icon(
+                showEmojiPicker ? Icons.keyboard : Icons.emoji_emotions,
+                color: Colors.grey[600],
+              ),
+              onPressed: onEmojiTap,
+            ),
             // Message Input Field
             Expanded(
               child: TextField(
                 controller: controller,
+                focusNode: focusNode,
                 style: const TextStyle(color: Colors.white),
                 decoration: InputDecoration(
                   hintText: 'Message $receiverName...',
